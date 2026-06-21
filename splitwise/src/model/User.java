@@ -9,6 +9,5 @@ import lombok.ToString;
 @ToString
 public class User {
     private final String id;
-
     private final String name;
 }

@@ -1,15 +1,67 @@
+import enums.UserTier;
+import model.User;
+import service.RateLimiterService;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+    // call allowreq func 20 times simultaneously
+    static void checkConcurrency(RateLimiterService rateLimiterService) throws InterruptedException {
+        User freeUser1 = new User("user1", UserTier.FREE);
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        int threads = 20; // simulate 20 concurrent requests
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+        CyclicBarrier barrier = new CyclicBarrier(threads);
+        CountDownLatch latch = new CountDownLatch(threads);
+
+        for (int i = 1; i <= threads; i++) {
+            final int reqNum = i;
+            executor.submit(() -> {
+                try {
+                    // all threads wait here until barrier is full
+                    barrier.await();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                boolean allowed = rateLimiterService.allowRequest(freeUser1);
+                System.out.println(Thread.currentThread().getName() +
+                        " | Request " + reqNum + " for FreeUser1: " + (allowed ? "ALLOWED" : "BLOCKED"));
+
+                latch.countDown();
+            });
         }
+
+        latch.await(); // wait for all threads to finish
+        executor.shutdown();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        RateLimiterService rateLimiterService = new RateLimiterService();
+
+        User freeUser = new User("user1", UserTier.FREE); // 10 req in 60 sec
+        User premiumUser = new User("user2", UserTier.PREMIUM); // 100 req in 60 sec
+
+//        System.out.println("=== Free User Requests ===");
+//        for (int i = 1; i <= 15; i++) {
+//            boolean allowed = rateLimiterService.allowRequest(freeUser);
+//            System.out.println("Request " + i + " for Free User: " + (allowed ? "ALLOWED" : "BLOCKED"));
+//            Thread.sleep(100); // simulate delay between requests
+//        }
+//
+//        System.out.println("\n=== Premium User Requests ===");
+//        for (int i = 1; i <= 120; i++) {
+//            boolean allowed = rateLimiterService.allowRequest(premiumUser);
+//            System.out.println("Request " + i + " for Premium User: " + (allowed ? "ALLOWED" : "BLOCKED"));
+//            Thread.sleep(100);
+//        }
+
+        checkConcurrency(rateLimiterService);
     }
 }

@@ -32,6 +32,7 @@ public class RateLimiterService {
         );
     }
 
+
     public boolean allowRequest(User user) {
         RateLimiter limiter = rateLimiters.get(user.getTier());
         if (limiter == null) {

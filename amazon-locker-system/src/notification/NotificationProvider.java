@@ -1,4 +1,9 @@
 package notification;
 
-public class NotificationProvider {
+import model.Customer;
+
+public interface NotificationProvider {
+
+    void notify(Customer customer,
+                String message);
 }

@@ -2,6 +2,7 @@ package model;
 
 import enums.TokenStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 public class AccessToken {
@@ -25,19 +26,22 @@ public class AccessToken {
         return otp;
     }
 
-    public boolean isExpired() {
-
-        return LocalDateTime.now().isAfter(expiryTime);
+    public boolean isExpired(Clock clock) {
+        return LocalDateTime.now(clock).isAfter(expiryTime);
     }
 
-    public boolean isValid() {
 
+    public boolean isValid(Clock clock) {
         return status == TokenStatus.ACTIVE &&
-                !isExpired();
+                !isExpired(clock);
     }
 
     public void markUsed() {
 
         status = TokenStatus.USED;
+    }
+
+    public TokenStatus getStatus() {
+        return status;
     }
 }

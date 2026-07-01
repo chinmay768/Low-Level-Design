@@ -1,4 +1,8 @@
 package exception;
 
-public class ParcelNotFoundException {
+public class ParcelNotFoundException extends AmazonLockerException {
+
+    public ParcelNotFoundException(String parcelId) {
+        super("Parcel not found: " + parcelId);
+    }
 }

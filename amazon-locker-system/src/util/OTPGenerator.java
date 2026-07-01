@@ -1,4 +1,6 @@
 package util;
 
-public class OTPGenerator {
+public interface OTPGenerator {
+
+    String generateOTP();
 }

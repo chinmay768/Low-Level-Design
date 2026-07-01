@@ -3,6 +3,8 @@ package model;
 import enums.CompartmentSize;
 import enums.CompartmentStatus;
 
+import static enums.CompartmentStatus.OCCUPIED;
+
 public class Compartment {
 
     private final String id;
@@ -37,22 +39,32 @@ public class Compartment {
         return parcel;
     }
 
-    public void reserve() {
+    public synchronized boolean reserve() {
+
+        if (status != CompartmentStatus.AVAILABLE)
+            return false;
 
         status = CompartmentStatus.RESERVED;
+
+        return true;
     }
 
-    public void occupy(Parcel parcel) {
+    public synchronized void occupy(Parcel parcel) {
+        if(status != CompartmentStatus.RESERVED)
+            throw new IllegalStateException(
+                    "Compartment must be reserved first.");
 
         this.parcel = parcel;
 
-        status = CompartmentStatus.OCCUPIED;
+        status = OCCUPIED;
     }
 
-    public void release() {
+    public synchronized void release() {
+
+        if(status != OCCUPIED)
+            throw new IllegalStateException();
 
         parcel = null;
-
         status = CompartmentStatus.AVAILABLE;
     }
 }
